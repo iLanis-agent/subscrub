@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SubScrub - App</title>
+<style>
+  :root { --bg:#0e1210; --card:#171e19; --edge:#2a352c; --ink:#e9f0ea; --dim:#93a496; --accent:#4fd08c; --warn:#e8b13c; --bad:#e05555; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:var(--ink); min-height:100vh; padding:28px 18px 60px; }
+  .wrap { max-width:780px; margin:0 auto; }
+  header { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:22px; }
+  h1 { font-size:1.5rem; } h1 .s { color:var(--accent); }
+  a.home { color:var(--dim); text-decoration:none; font-size:0.9rem; }
+  section { background:var(--card); border:1px solid var(--edge); border-radius:14px; padding:20px; margin-bottom:20px; }
+  h2 { font-size:1.05rem; margin-bottom:14px; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; }
+  .field { display:flex; flex-direction:column; gap:5px; flex:1; min-width:110px; }
+  label { font-size:0.72rem; text-transform:uppercase; letter-spacing:0.6px; color:var(--dim); }
+  input, select, button { font:inherit; border-radius:8px; border:1px solid var(--edge); padding:10px 12px; background:#0e1210; color:var(--ink); }
+  input:focus, select:focus { outline:none; border-color:var(--accent); }
+  button { cursor:pointer; background:var(--accent); border:none; color:#06120b; font-weight:700; }
+  button:hover { filter:brightness(1.1); }
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; }
+  .stat { background:#0e1210; border:1px solid var(--edge); border-radius:10px; padding:14px; }
+  .stat .v { font-size:1.35rem; font-weight:700; }
+  .stat .l { color:var(--dim); font-size:0.78rem; margin-top:3px; }
+  .stat.burn .v { color:var(--warn); } .stat.save .v { color:var(--accent); }
+  .sub { display:flex; align-items:center; gap:10px; padding:12px 4px; border-bottom:1px solid var(--edge); flex-wrap:wrap; }
+  .sub:last-child { border-bottom:none; }
+  .sub.cut { opacity:0.55; }
+  .sub .name { font-weight:600; min-width:120px; }
+  .sub .meta { color:var(--dim); font-size:0.85rem; flex:1; }
+  .pill { font-size:0.72rem; font-weight:700; padding:3px 10px; border-radius:999px; letter-spacing:0.4px; }
+  .pill.good { background:rgba(79,208,140,.15); color:var(--accent); }
+  .pill.fair { background:rgba(232,177,60,.15); color:var(--warn); }
+  .pill.bad { background:rgba(224,85,85,.18); color:var(--bad); }
+  .sub button.act { background:transparent; border:1px solid var(--edge); color:var(--dim); font-weight:400; font-size:0.8rem; padding:6px 10px; }
+  .sub button.act:hover { color:var(--ink); border-color:var(--accent); }
+  .sub button.act.cutting { color:var(--bad); border-color:var(--bad); }
+  .empty { color:var(--dim); text-align:center; padding:18px; font-size:0.95rem; }
+  .err { color:var(--bad); font-size:0.85rem; margin-top:8px; min-height:1em; }
+  .simbar { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; background:#0e1210; border:1px dashed var(--accent); border-radius:10px; padding:14px 16px; margin-top:14px; }
+  .simbar .big { font-size:1.15rem; font-weight:700; color:var(--accent); }
+  .simbar span { color:var(--dim); font-size:0.9rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Sub<span class="s">Scrub</span></h1>
+    <a class="home" href="index.html">&larr; Home</a>
+  </header>
+
+  <section>
+    <h2>Add a subscription</h2>
+    <div class="row">
+      <div class="field" style="flex:2"><label>Service</label><input id="f-name" type="text" placeholder="e.g. Streamly" maxlength="40"></div>
+      <div class="field"><label>Cost</label><input id="f-cost" type="number" min="0" step="0.01" placeholder="9.99"></div>
+      <div class="field"><label>Cycle</label><select id="f-cycle"><option value="monthly">monthly</option><option value="yearly">yearly</option><option value="weekly">weekly</option></select></div>
+      <div class="field"><label>Uses / month</label><input id="f-uses" type="number" min="0" step="1" placeholder="8"></div>
+      <div class="field" style="flex:0 0 auto; justify-content:flex-end"><button id="f-add">Add</button></div>
+    </div>
+    <div class="err" id="f-err"></div>
+  </section>
+
+  <section>
+    <h2>The burn</h2>
+    <div class="stats">
+      <div class="stat burn"><div class="v" id="s-month">$0</div><div class="l">per month, all cycles normalized</div></div>
+      <div class="stat burn"><div class="v" id="s-year">$0</div><div class="l">per year</div></div>
+      <div class="stat"><div class="v" id="s-count">0</div><div class="l">subscriptions</div></div>
+      <div class="stat save"><div class="v" id="s-worst">-</div><div class="l">worst value right now</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Your subscriptions (worst value first)</h2>
+    <div id="list"><div class="empty">Nothing here yet. Add your first subscription above.</div></div>
+    <div class="simbar" id="simbar" style="display:none">
+      <span id="sim-text"></span>
+      <span class="big" id="sim-save"></span>
+    </div>
+  </section>
+</div>
+
+<script src="engine.js"></script>
+<script>
+(function () {
+  var KEY = 'subscrub-subs';
+  var $ = function (id) { return document.getElementById(id); };
+
+  function load() {
+    try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) { return []; }
+  }
+  function save(list) { localStorage.setItem(KEY, JSON.stringify(list)); }
+  function fmt(n) {
+    var v = Math.round(n * 100) / 100;
+    return '$' + (v % 1 === 0 ? v : v.toFixed(2));
+  }
+  function pillClass(verdict) {
+    if (verdict === 'earning its keep') return 'good';
+    if (verdict === 'fair') return 'fair';
+    return 'bad';
+  }
+
+  function render() {
+    var subs = load();
+    var t = SubEngine.totals(subs);
+    $('s-month').textContent = fmt(t.monthly);
+    $('s-year').textContent = fmt(t.yearly);
+    $('s-count').textContent = t.count;
+
+    var ranked = SubEngine.rankByWaste(subs);
+    $('s-worst').textContent = ranked.length ? ranked[0].name : '-';
+
+    var list = $('list');
+    list.innerHTML = '';
+    if (!ranked.length) list.innerHTML = '<div class="empty">Nothing here yet. Add your first subscription above.</div>';
+    ranked.forEach(function (s) {
+      var verdict = SubEngine.verdict(s);
+      var cpu = SubEngine.costPerUse(s);
+      var cpuTxt = cpu === Infinity ? 'no uses logged' : fmt(cpu) + ' per use';
+      var row = document.createElement('div');
+      row.className = 'sub' + (s.cut ? ' cut' : '');
+      row.innerHTML = '<span class="name"></span><span class="pill ' + pillClass(verdict) + '">' + verdict + '</span>' +
+        '<span class="meta">' + fmt(SubEngine.monthlyCost(s)) + '/mo (' + s.cycle + ' ' + fmt(Number(s.cost) || 0) + ') &middot; ' + cpuTxt + '</span>' +
+        '<button class="act' + (s.cut ? ' cutting' : '') + '" data-act="cut">' + (s.cut ? 'Keep after all' : 'Cut it') + '</button>' +
+        '<button class="act" data-act="delete">Remove</button>';
+      row.querySelector('.name').textContent = s.name;
+      row.querySelectorAll('button.act').forEach(function (b) {
+        b.addEventListener('click', function () { act(s.id, b.getAttribute('data-act')); });
+      });
+      list.appendChild(row);
+    });
+
+    var sim = SubEngine.simulate(subs);
+    var bar = $('simbar');
+    if (sim.cutCount > 0) {
+      bar.style.display = 'flex';
+      $('sim-text').textContent = 'Cutting ' + sim.cutCount + ' would drop you to ' + fmt(sim.newMonthly) + '/mo.';
+      $('sim-save').textContent = 'Save ' + fmt(sim.savedYearly) + '/yr';
+    } else {
+      bar.style.display = 'none';
+    }
+  }
+
+  function act(id, action) {
+    var subs = load();
+    if (action === 'delete') {
+      subs = subs.filter(function (x) { return x.id !== id; });
+    } else {
+      subs.forEach(function (x) { if (x.id === id) x.cut = !x.cut; });
+    }
+    save(subs);
+    render();
+  }
+
+  $('f-add').addEventListener('click', function () {
+    var name = $('f-name').value.trim();
+    var cost = parseFloat($('f-cost').value);
+    var cycle = $('f-cycle').value;
+    var uses = parseInt($('f-uses').value, 10);
+    var err = $('f-err');
+    err.textContent = '';
+    if (!name) { err.textContent = 'Name the service.'; return; }
+    if (isNaN(cost) || cost < 0) { err.textContent = 'Enter the cost per billing cycle.'; return; }
+    if (isNaN(uses) || uses < 0) { err.textContent = 'Be honest: how many times a month do you use it? 0 is allowed.'; return; }
+    var subs = load();
+    subs.push({ id: 's' + Date.now() + Math.floor(Math.random() * 1000), name: name, cost: cost, cycle: cycle, usesPerMonth: uses, cut: false });
+    save(subs);
+    $('f-name').value = ''; $('f-cost').value = ''; $('f-uses').value = '';
+    render();
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
