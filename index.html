@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SubScrub - Audit your subscriptions honestly</title>
+<style>
+  :root { --bg:#0e1210; --card:#171e19; --edge:#2a352c; --ink:#e9f0ea; --dim:#93a496; --accent:#4fd08c; --bad:#e05555; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:var(--ink); min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:48px 20px; }
+  .wrap { max-width:680px; width:100%; }
+  h1 { font-size:2.4rem; letter-spacing:-0.5px; }
+  h1 .s { color:var(--accent); }
+  p.lede { color:var(--dim); margin:16px 0 28px; font-size:1.1rem; line-height:1.55; }
+  .feats { display:grid; gap:12px; margin-bottom:32px; }
+  .feat { background:var(--card); border:1px solid var(--edge); border-radius:12px; padding:16px 18px; }
+  .feat b { color:var(--accent); }
+  .feat p { color:var(--dim); font-size:0.95rem; margin-top:4px; }
+  a.cta { display:inline-block; background:var(--accent); color:#06120b; font-weight:700; padding:14px 34px; border-radius:10px; text-decoration:none; font-size:1.05rem; }
+  a.cta:hover { filter:brightness(1.1); }
+  .foot { color:var(--dim); font-size:0.85rem; margin-top:36px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Sub<span class="s">Scrub</span></h1>
+  <p class="lede">Your subscriptions add up to a number you have probably never said out loud. SubScrub makes you say it - then shows what each one really costs per use, and what you get back by cutting the dead weight.</p>
+  <div class="feats">
+    <div class="feat"><b>The real burn</b><p>Monthly, yearly and weekly plans normalized into one honest monthly and yearly total.</p></div>
+    <div class="feat"><b>Cost per use</b><p>Enter how often you actually use each service and get a verdict from "earning its keep" to "dead weight".</p></div>
+    <div class="feat"><b>Cut simulator</b><p>Flip subscriptions into the cut pile and watch your new burn and annual savings update live - before you cancel anything.</p></div>
+    <div class="feat"><b>Private by design</b><p>No account, no bank connection. Everything stays in your browser's local storage.</p></div>
+  </div>
+  <a class="cta" href="app.html">Open SubScrub</a>
+  <p class="foot">Runs fully offline after load. Part of the App Factory experiment - a new app every hour.</p>
+</div>
+</body>
+</html>
